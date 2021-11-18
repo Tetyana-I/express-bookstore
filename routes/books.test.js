@@ -64,6 +64,7 @@ describe("GET /[id]  => {book: book}", function() {
   test("Incorrect isbn returns 404 ", async () => {
     const res = await request(app).get('/books/0691161518abracadabra');
     expect(res.statusCode).toBe(404);
+    expect(res.body).toEqual(expect.objectContaining({"message": "There is no book with an isbn '0691161518abracadabra"}))
   })
 })
 
@@ -104,33 +105,22 @@ describe("POST /   bookData => {book: newBook}", function() {
       "year": 2023
     });
     expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual(expect.objectContaining({"message": ["instance.year must be less than or equal to 2021"]}))
   })
 
-  test("Returns 400 if pages data is incorrect", async () => {
+  test("Returns 400 and 2 error messages if pages data is incorrect and publisher is missing", async () => {
     const res = await request(app).post('/books').send({
       "isbn": "0132350899",
       "amazon_url": "http://a.co/eobPtX2",
       "author": "Robert C. Martin",
       "language": "english",
       "pages": -400,
-      "publisher": "Press",
       "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
       "year": 2019
     });
     expect(res.statusCode).toBe(400);
-  })
-  
-  test("Returns 400 if publisher is missing", async () => {
-    const res = await request(app).post('/books').send({
-      "isbn": "0132350899",
-      "amazon_url": "http://a.co/eobPtX2",
-      "author": "Robert C. Martin",
-      "language": "english",
-      "pages": 400,
-      "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
-      "year": 2019
-    });
-    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual(expect.objectContaining({"message":
+     ["instance requires property \"publisher\"", "instance.pages must be greater than or equal to 1"]}))
   })
 })
 
